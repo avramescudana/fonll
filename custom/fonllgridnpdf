@@ -63,6 +63,10 @@ output_folder="output_fonll_dsdpt_${quark}_${sqrts}_pdf_${label}"
 mkdir -p "$output_folder"
 cd $output_folder
 
+eps_file="EPPS16NLOR_208"
+# Copy EPPS grid file to working directory
+cp $eps_file "$output_folder/"
+
 if [[ $pdflib == 'hvq' ]]; then
   /home/dana/fonll/pdfdata/linkpdf.sh
 fi
@@ -90,7 +94,7 @@ done
 # Bins in y
 ymin=-1
 ymax=1
-y_points=10
+y_points=5
 y_step=$(echo "scale=10; ($ymax - $ymin) / ($y_points - 1)" | bc)
 
 # Generate the sequence of points and format each to 4 significant digits
@@ -112,8 +116,8 @@ for pt in "${formatted_pts[@]}"; do
         # Run the FONLL program with the heredoc input and append the output to the file
         $FONLL <<EOF 
 $outputfile
-1 $energy 0 0 $proton ! beam1: type, ener.,  nptype, ngroup, nset
-1 $energy 0 0 $proton ! beam2: type, ener.,  nptype, ngroup, nset
+-208001 $energy 0 0 $proton ! beam1: type, ener.,  nptype, ngroup, nset
+-208001 $energy 0 0 $proton ! beam2: type, ener.,  nptype, ngroup, nset
 $mass    ! heavy quark mass
 -1    ! Lambda_5, <=0 for default
 $muf  $mur !  fact. and ren. scale factors
@@ -122,6 +126,8 @@ $pt $y ! pt,y_lab
 EOF
     done
 done
+
+rm $eps_file
 
 \rm *.tmp *.outlog  *'fonll.log'
 \rm cor* ctq* cteq* *MRS* PION* vnv* LAC* GR* ft* alf*
