@@ -59,13 +59,17 @@ else
   FONLL="/home/dana/fonll/Linux/fonlllha"
 fi
 
-output_folder="output_fonll_dsdpt_${quark}_${sqrts}_pdf_${label}"
+npdf='epps16'
+
+output_folder="output_fonll_dsdpt_${quark}_${sqrts}_pdf_${label}_npdf_${npdf}"
 mkdir -p "$output_folder"
-cd $output_folder
 
 eps_file="EPPS16NLOR_208"
 # Copy EPPS grid file to working directory
 cp $eps_file "$output_folder/"
+
+# Move to the output folder
+cd $output_folder
 
 if [[ $pdflib == 'hvq' ]]; then
   /home/dana/fonll/pdfdata/linkpdf.sh
