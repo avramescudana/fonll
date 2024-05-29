@@ -1,0 +1,4 @@
+export PATH=$PATH:/home/dana/lhapdf/bin 
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/dana/lhapdf/lib 
+export PYTHONPATH=$PYTHONPATH:/home/dana/lhapdf/lib/python3.10/site-packages 
+export LHAPDF_DATA_PATH=$LHAPDF_DATA_PATH:/home/dana/lhapdf/share/LHAPDF

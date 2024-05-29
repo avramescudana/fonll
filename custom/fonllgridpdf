@@ -1,0 +1,123 @@
+#!/bin/bash
+
+# Chose the desired PDF library by commenting/uncommenting
+# "hvq" uses hvqpdfpho.f, "lha" uses the external LHAPDF library
+# pdflib='hvq'
+pdflib='lha'
+
+# Current folder 
+current_dir=$(pwd)
+
+# Quark name
+quark='charm'
+
+if [[ $quark == 'charm' ]]; then
+  mass=1.5
+  muf=2.
+  mur=1.
+else
+  # beauty quark
+  mass=5.
+  muf=2.
+  mur=1.
+fi
+
+# Beam 1 and 2 energy for pp collisions
+energy=2750
+# CMS energy for pp collisions
+sqrts=$((2*energy))
+
+# PDF choice for LHAPDF
+pdftype='cteq'
+
+if [[ $pdflib == 'hvq' ]]; then
+  proton=131
+  label='hvq'
+
+  FONLL="/home/dana/fonll/Linux/fonll"
+else
+  if [[ $pdftype == 'cteq' ]]; then  
+    # CTEQ6.6
+    proton=10550
+    label='lha_cteq'
+  elif [[ $pdftype == 'nnpdf' ]]; then 
+    # NNPDF30_nlo_as_0118	
+    proton=260000
+    label='lha_nnpdf'
+  elif [[ $pdftype == 'ct14' ]]; then
+    # CT14nlo
+    proton=13100
+    label='lha_ct14'
+  fi
+
+  FONLL="/home/dana/fonll/Linux/fonlllha"
+fi
+
+output_folder="output_fonll_dsdpt_${quark}_${sqrts}_pdf_${label}"
+mkdir -p "$output_folder"
+cd $output_folder
+
+if [[ $pdflib == 'hvq' ]]; then
+  /home/dana/fonll/pdfdata/linkpdf.sh
+fi
+
+# \rm $outfile.outlog
+echo $FONLL
+
+# Create a grid in pt and y with specified cuts
+
+# Bins in pt
+pt_start=0.0001
+# pt_start=0
+pt_end=20
+pt_points=30
+pt_step=$(echo "scale=10; ($pt_end - $pt_start) / ($pt_points - 1)" | bc)
+
+# Generate the sequence of points and format each to 4 significant digits
+formatted_pts=()
+for ipt in $(seq $pt_start $pt_step $pt_end); do
+    formatted_pt=$(printf "%.4f" "$ipt")
+    formatted_pt=${formatted_pt//,/.}
+    formatted_pts+=("$formatted_pt")
+done
+
+# Bins in y
+ymin=-1
+ymax=1
+y_points=5
+y_step=$(echo "scale=10; ($ymax - $ymin) / ($y_points - 1)" | bc)
+
+# Generate the sequence of points and format each to 4 significant digits
+formatted_ys=()
+for iy in $(seq $ymin $y_step $ymax); do
+    formatted_y=$(printf "%.4f" "$iy")
+    formatted_y=${formatted_y//,/.}
+    formatted_ys+=("$formatted_y")
+done
+
+# Loop over each pt value
+for pt in "${formatted_pts[@]}"; do
+    # Loop over each y value
+    for y in "${formatted_ys[@]}"; do
+        # Generate a unique output filename
+        outputfile="pt_${pt}_y_${y}"
+        echo $outputfile
+
+        # Run the FONLL program with the heredoc input and append the output to the file
+        $FONLL <<EOF 
+$outputfile
+1 $energy 0 0 $proton ! beam1: type, ener.,  nptype, ngroup, nset
+1 $energy 0 0 $proton ! beam2: type, ener.,  nptype, ngroup, nset
+$mass    ! heavy quark mass
+-1    ! Lambda_5, <=0 for default
+$muf  $mur !  fact. and ren. scale factors
+$pt $y ! pt,y_lab
+1   ! icalctype
+EOF
+    done
+done
+
+\rm *.tmp *.outlog  *'fonll.log'
+\rm cor* ctq* cteq* *MRS* PION* vnv* LAC* GR* ft* alf*
+
+exit
