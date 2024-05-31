@@ -19,13 +19,13 @@ current_dir=$(pwd)
 
 if [[ $quark == 'charm' ]]; then
   mass=1.5
-  muf=2.
+  muf=1.
   mur=1.
 else
   # beauty quark
   mass=5.
   muf=2.
-  mur=1.
+  mur=2.
 fi
 
 # Beam 1 and 2 energy for pp collisions
